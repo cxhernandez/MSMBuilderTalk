@@ -57,7 +57,7 @@ title: Enter Data Science
 
 - Thousands of experts are using machine learning approaches
 - Well-tested, performant, and facile implementations are available
-- Writing your own is bad science!
+- Writing your own is NOT OK!
 
 
 ---
@@ -102,25 +102,6 @@ title: Models fit() data!
 
 <pre class="prettyprint" data-lang="python">
 
-import mixtape.markovstatemodel
-
-trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
-
-msm = mixtape.markovstatemodel.MarkovStateModel()
-msm.fit(trajectories)
-
-msm.transmat_
-
-</pre>
-
-Estimated parameters *always* have trailing underscores!
-
-
----
-title: Models fit() data!
-
-<pre class="prettyprint" data-lang="python">
-
 import mixtape.cluster
 
 trajectories = [np.random.normal(size=(100, 3))]
@@ -147,12 +128,17 @@ title: fit() acts on lists of sequences
 
 <pre class="prettyprint" data-lang="python">
 
-import mixtape.cluster, mixtape.markovstatemodel, mixtape.tica
+import mixtape.markovstatemodel
 
 trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
 
 msm = mixtape.markovstatemodel.MarkovStateModel()
 msm.fit(trajectories)
+
+msm.transmat_
+
+array([[ 0.75      ,  0.25      ],
+       [ 0.33333333,  0.66666667]])
 
 </pre>
 
@@ -214,8 +200,6 @@ Featurizers wrap MDTraj functions via the `transform()` function
 import mixtape.featurizer, mixtape.datasets
 
 trajectories = mixtape.datasets.alanine_dipeptide.fetch_alanine_dipeptide()["trajectories"]
-# More typically
-# trajectories = [md.load(filename) for filename in filenames]
 
 featurizer = mixtape.featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
 X = featurizer.transform(trajectories)
@@ -225,7 +209,65 @@ hexbin(phi, psi)
 </pre>
 
 
+<center>
+<img height=125 src=figures/rama.png />
+</center>
+
+
+
 ---
-title: Old-School MSMs
+title: Loading Trajectories
+
+<pre class="prettyprint" data-lang="python">
+
+import glob
+import mdtraj as md
+
+filenames = glob.glob("./Trajectories/*.h5")
+trajectories = [md.load(filename) for filename in filenames]
+
+</pre>
+
+---
+title: Old-school MSMs
+
+<pre class="prettyprint" data-lang="python">
+
+import mdtraj as md
+import mixtape.featurizer, mixtape.datasets, mixtape.cluster, mixtape.markovstatemodel
+import sklearn.pipeline
+
+trajectories = mixtape.datasets.alanine_dipeptide.fetch_alanine_dipeptide()["trajectories"]
+
+cluster = mixtape.cluster.KCenters(n_clusters=10, metric=md.rmsd)
+msm = mixtape.markovstatemodel.MarkovStateModel()
+pipeline = sklearn.pipeline.Pipeline([("cluster", cluster), ("msm", msm)])
+
+pipeline.fit(trajectories)
+
+featurizer = mixtape.featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
+X = featurizer.transform(trajectories)
+phi, psi = np.concatenate(X).T * 180 / np.pi
+hexbin(phi, psi)
+phi, psi = featurizer.transform([cluster.cluster_centers_])[0].T * 180 / np.pi
+plot(phi, psi, 'k*', markersize=25)
+
+</pre>
 
 
+---
+title: Cross Validation
+
+<pre class="prettyprint" data-lang="python">
+
+from sklearn.cross_validation import KFold
+
+cv = KFold(len(trajectories), n_folds=5)
+
+for fold, (train_index, test_index) in enumerate(cv):
+    train_data = [trajectories[i] for i in train_index]
+    test_data = [trajectories[i] for i in test_index]
+    model.fit(train_data)
+    model.score(test_data)
+
+</pre>
