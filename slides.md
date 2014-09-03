@@ -4,8 +4,8 @@
 ---
 title: Analyzing Molecular Dynamics Data, Circa 1980
 
-- Traditionally, MD Analysis happened in walled gardens (Gromacs, Amber, VMD)
-- Duplication of statistical algorithms by non-experts (e.g. computational chemists)
+- Analysis happens in walled gardens (Gromacs, Amber, VMD)
+- Duplication of statistical algorithms by non-experts (e.g. chemists)
 - Possible code maintainability issues?
 
 
@@ -33,35 +33,6 @@ rmsdcut = 10000;
 
 </pre>
 
-
----
-title: Jarvis Patrick Clustering in Gromacs (Cont.)
-
-<pre class="prettyprint" data-lang="c">
-
-snew(nnb, n1);
-snew(row, n1);
-for (i = 0; (i < n1); i++)
-{
-for (j = 0; (j < n1); j++)
-{
-row[j].j = j;
-row[j].dist = mat[i][j];
-}
-qsort(row, n1, sizeof(row[0]), rms_dist_comp);
-if (M > 0)
-{
-/* Put the M nearest neighbors in the list */
-snew(nnb[i], M+1);
-for (j = k = 0; (k < M) && (j < n1) && (mat[i][row[j].j] < rmsdcut); j++)
-{
-
-
-
-</pre>
-
-
-
 ---
 title: Jarvis Patrick Clustering in Gromacs (Cont.)
 
@@ -69,8 +40,12 @@ title: Jarvis Patrick Clustering in Gromacs (Cont.)
 
 // Five more pages of this
 // You get the idea
-// Also, how the hell do we even use this function?!
-static void jarvis_patrick(int n1, real **mat, int M, int P, real rmsdcut, t_clusters *clust)
+
+
+// Also, how the hell do we even use this function?
+static void jarvis_patrick(int n1, real **mat, int M, int P,
+real rmsdcut, t_clusters *clust)
+
 
 
 </pre>
@@ -82,107 +57,175 @@ title: Enter Data Science
 
 - Thousands of experts are using machine learning approaches
 - Well-tested, performant, and facile implementations are available
-- Writing your own XYZ is bad science!
+- Writing your own is bad science!
 
-
-
----
-title: Enter Data Science
-
-<pre class="prettyprint" data-lang="python">
-
-import sklearn.cluster
-
-clusterer = sklearn.cluster.KMeans(n_clusters=8)
-cluster.fit(X)
-
-</pre>
 
 ---
 title: Mixtape: Philosophy
 
-- Build on sklearn idioms
-- Model(), fit(), transform(), Pipeline()
+Build on sklearn idioms
 
+ 
+- Everything is a Model()!
+- Models fit() data!
+- Models transform() data!
+- Pipeline() concatenates models!
+- Encourage Best-Practices (cross-validation)
 
 ---
-title: Everything is a model!
+title: Everything is a Model()!
 
 
 <pre class="prettyprint" data-lang="python">
 
 import mixtape.cluster
-clusterer = mixtape.cluster.KMeans(n_clusters=8)
+clusterer = mixtape.cluster.KMeans(n_clusters=4)
 
 import mixtape.tica
-tica = mixtape.tica.tICA()
+tica = mixtape.tica.tICA(n_components=3)
 
 import mixtape.markovstatemodel
 msm = mixtape.markovstatemodel.MarkovStateModel()
-
-</pre>
-
-
----
-title: Models need fitting!
-
-<pre class="prettyprint" data-lang="python">
-
-import mixtape.markovstatemodel
-msm = mixtape.markovstatemodel.MarkovStateModel()
-trajectories = [np.array([0, 0, 0, 1, 1, 1, 0 , 0])]
-msm.fit(trajectories)
-msm.transmat_
-
-</pre>
-
-Calculation outputs *always* have trailing underscores!
-
-
----
-title: Models need fitting!
-
-<pre class="prettyprint" data-lang="python">
-
-import mixtape.cluster
-clusterer = mixtape.cluster.KMeans(n_clusters=8, n_init=10)
-trajectories = [np.random.normal(size=(100, 3))]
-clusterer.fit(trajectories)
-clusterer.cluster_centers_
 
 </pre>
 
 Input hyperparameters in the constructor!
 
 
+<footer class="source"> 
+Actually, everything is a sklearn.base.BaseEstimator()
+</footer>
+
+
 ---
-title: Models can transform() data!
+title: Models fit() data!
+
+<pre class="prettyprint" data-lang="python">
+
+import mixtape.markovstatemodel
+
+trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
+
+msm = mixtape.markovstatemodel.MarkovStateModel()
+msm.fit(trajectories)
+
+msm.transmat_
+
+</pre>
+
+Estimated parameters *always* have trailing underscores!
+
+
+---
+title: Models fit() data!
 
 <pre class="prettyprint" data-lang="python">
 
 import mixtape.cluster
-clusterer = mixtape.cluster.KMeans(n_clusters=8, n_init=10)
-trajectories = [np.random.normal(size=(100, 3))]
-clusterer.fit(trajectories)
-clusterer.transform([np.zeros(1, 3)])
 
-[array([7], dtype=int32)]
+trajectories = [np.random.normal(size=(100, 3))]
+
+clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
+clusterer.fit(trajectories)
+
+clusterer.cluster_centers_
+
+array([[-0.22340896,  1.0745301 , -0.40222902],
+       [-0.25410827, -0.11611431,  0.95394687],
+       [ 1.34302485,  0.14004818,  0.01130485],
+       [-0.59773874, -0.82508303, -0.95703567]])
+
+
+</pre>
+
+Estimated parameters *always* have trailing underscores!
+
+
+---
+title: fit() acts on lists of sequences
+
+
+<pre class="prettyprint" data-lang="python">
+
+import mixtape.cluster, mixtape.markovstatemodel, mixtape.tica
+
+trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
+
+msm = mixtape.markovstatemodel.MarkovStateModel()
+msm.fit(trajectories)
+
+</pre>
+
+This is different from sklearn, which uses 2D arrays!!!
+
+
+---
+title: Models transform() data!
+
+<pre class="prettyprint" data-lang="python">
+
+import mixtape.cluster
+
+trajectories = [np.random.normal(size=(100, 3))]
+
+clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
+clusterer.fit(trajectories)
+Y = clusterer.transform(trajectories)
+
+[array([5, 6, 6, 0, 5, 5, 1, 6, 1, 7, 5, 7, 4, 2, 2, 2, 5, 3, 0, 0, 1, 3, 0,
+        5, 5, 0, 4, 0, 0, 3, 4, 7, 3, 5, 5, 5, 6, 1, 1, 0, 0, 7, 4, 4, 2, 6,
+        1, 4, 2, 0, 2, 4, 4, 5, 2, 6, 3, 2, 0, 6, 3, 0, 7, 7, 7, 0, 0, 0, 3,
+        3, 2, 7, 6, 7, 2, 5, 1, 0, 3, 6, 3, 2, 0, 5, 0, 3, 4, 2, 5, 4, 1, 5,
+        5, 4, 3, 3, 7, 2, 1, 4], dtype=int32)]
+
+</pre>
+
+---
+title: Pipeline() concatenates models!
+
+
+<pre class="prettyprint" data-lang="python">
+
+import mixtape.cluster, mixtape.markovstatemodel
+import sklearn.pipeline
+
+trajectories = [np.random.normal(size=(100, 3))]
+
+clusterer = mixtape.cluster.KMeans(n_clusters=2, n_init=10)
+msm = mixtape.markovstatemodel.MarkovStateModel()
+pipeline = sklearn.pipeline.Pipeline([("clusterer", clusterer), ("msm", msm)])
+
+pipeline.fit(trajectories)
+msm.transmat_
+
+array([[ 0.53703704,  0.46296296],
+       [ 0.53333333,  0.46666667]])
 
 </pre>
 
 
 ---
-title: Pipelining Models
+title: Featurizing Trajectories
 
+Featurizers wrap MDTraj functions via the `transform()` function
 
 <pre class="prettyprint" data-lang="python">
 
-import mixtape.
-clusterer = mixtape.cluster.KMeans(n_clusters=8, n_init=10)
-trajectories = [np.random.normal(size=(100, 3))]
-clusterer.fit(trajectories)
-clusterer.transform([np.zeros(1, 3)])
+import mixtape.featurizer, mixtape.datasets
 
-[array([7], dtype=int32)]
+trajectories = mixtape.datasets.alanine_dipeptide.fetch_alanine_dipeptide()["trajectories"]
+# More typically
+# trajectories = [md.load(filename) for filename in filenames]
+
+featurizer = mixtape.featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
+X = featurizer.transform(trajectories)
+phi, psi = np.concatenate(X).T * 180 / np.pi
+hexbin(phi, psi)
 
 </pre>
+
+
+---
+title: Old-School MSMs
+
+
