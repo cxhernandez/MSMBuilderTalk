@@ -274,7 +274,7 @@ for fold, (train_index, test_index) in enumerate(cv):
 
 
 ---
-title: KCenters is Bad!
+title: Model Scoring with GMRQ: KCenters is Bad!
 
 
 
