@@ -271,3 +271,17 @@ for fold, (train_index, test_index) in enumerate(cv):
     model.score(test_data)
 
 </pre>
+
+
+---
+title: KCenters is Bad!
+
+
+
+<center>
+<img height=355 src=figures/SETD2_kcenters.png />
+<img height=355 src=figures/SETD2_tICA_KMeans.png />
+</center>
+
+
+
