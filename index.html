@@ -54,7 +54,7 @@ URL: https://code.google.com/p/io-2012-slides
 
     <h1> Conformational Dynamics in Mixtape</h1>
     <h2></h2>
-    <p> Kyle A. Beauchamp</p>
+    <p> Kyle A. Beauchamp<br/> September 3, 2014</p>
   </hgroup>
 </slide>
 
@@ -62,11 +62,12 @@ URL: https://code.google.com/p/io-2012-slides
 <slide  >
   
     <hgroup>
-      <h2>Analyzing Molecular Dynamics Data, Circa 1980</h2>
+      <h2>Old-School Analysis of MD Data</h2>
       <h3></h3>
     </hgroup>
     <article ><ul>
 <li>Analysis happens in walled gardens (Gromacs, Amber, VMD)</li>
+<li>Exclusively command line interfaces, C and Fortran code</li>
 <li>Duplication of statistical algorithms by non-experts (e.g. chemists)</li>
 <li>Possible code maintainability issues?</li>
 </ul></article>
@@ -77,27 +78,24 @@ URL: https://code.google.com/p/io-2012-slides
   
     <hgroup>
       <h2>Jarvis Patrick Clustering in Gromacs</h2>
-      <h3></h3>
+      <h3><a href="https://github.com/gromacs/gromacs/blob/master/src/gromacs/gmxana/gmx_cluster.c">real code in gromacs</a></h3>
     </hgroup>
     <article ><pre class="prettyprint" data-lang="c">
 
 static void jarvis_patrick(int n1, real **mat, int M, int P,
-real rmsdcut, t_clusters *clust)
-{
+real rmsdcut, t_clusters *clust) {
 t_dist *row;
 t_clustid *c;
 int **nnb;
 int i, j, k, cid, diff, max;
 gmx_bool bChange;
 real **mcpy = NULL;
-if (rmsdcut < 0)
-{
+if (rmsdcut < 0) {
 rmsdcut = 10000;
 }
 /* First we sort the entries in the RMSD matrix row by row.
 * This gives us the nearest neighbor list.
 */
-
 </pre></article>
  
 </slide>
@@ -113,13 +111,9 @@ rmsdcut = 10000;
 // Five more pages of this
 // You get the idea
 
-
-// Also, how the hell do we even use this function?
+// Also, how do we even use this function?
 static void jarvis_patrick(int n1, real **mat, int M, int P,
-real rmsdcut, t_clusters *clust)
-
-
-
+real rmsdcut, t_clusters *clust);
 </pre></article>
  
 </slide>
@@ -131,9 +125,14 @@ real rmsdcut, t_clusters *clust)
       <h3></h3>
     </hgroup>
     <article ><ul>
+<li>Machine learning is mainstream now!</li>
 <li>Thousands of experts are using machine learning approaches</li>
 <li>Well-tested, performant, and facile implementations are available</li>
-<li>Writing your own is NOT OK!</li>
+<li>Writing your own is not the way to go!<ul>
+<li>E.g: is clustering <em>that</em> special and MD-specific such that
+we need our own custom algorithms and implementations? No. </li>
+</ul>
+</li>
 </ul></article>
  
 </slide>
@@ -144,12 +143,12 @@ real rmsdcut, t_clusters *clust)
       <h2>Mixtape: Philosophy</h2>
       <h3></h3>
     </hgroup>
-    <article ><p>Build on sklearn idioms</p>
+    <article ><p>Let's build on <a href="http://scikit-learn.org/stable/">scikit-learn</a> idioms:</p>
 <ul>
-<li>Everything is a Model()!</li>
-<li>Models fit() data!</li>
-<li>Models transform() data!</li>
-<li>Pipeline() concatenates models!</li>
+<li>Everything is a <code>Model()</code>!</li>
+<li>Models <code>fit()</code> data!</li>
+<li>Models <code>transform()</code> data!</li>
+<li><code>Pipeline()</code> concatenates models!</li>
 <li>Encourage Best-Practices (cross-validation)</li>
 </ul></article>
  
@@ -158,25 +157,25 @@ real rmsdcut, t_clusters *clust)
 <slide  >
   
     <hgroup>
-      <h2>Everything is a Model()!</h2>
+      <h2>Everything is a <code>Model()</code>!</h2>
       <h3></h3>
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import mixtape.cluster
-clusterer = mixtape.cluster.KMeans(n_clusters=4)
+>>> import mixtape.cluster
+>>> clusterer = mixtape.cluster.KMeans(n_clusters=4)
 
-import mixtape.tica
-tica = mixtape.tica.tICA(n_components=3)
+>>> import mixtape.tica
+>>> tica = mixtape.tica.tICA(n_components=3)
 
-import mixtape.markovstatemodel
-msm = mixtape.markovstatemodel.MarkovStateModel()
+>>> import mixtape.markovstatemodel
+>>> msm = mixtape.markovstatemodel.MarkovStateModel()
 
 </pre>
 
-<p>Input hyperparameters in the constructor!</p>
+<p>Hyperparameters go in the constructor.</p>
 <footer class="source"> 
-Actually, everything is a sklearn.base.BaseEstimator()
+Actually, everything is a <code>sklearn.base.BaseEstimator()</code>
 </footer></article>
  
 </slide>
@@ -184,19 +183,19 @@ Actually, everything is a sklearn.base.BaseEstimator()
 <slide  >
   
     <hgroup>
-      <h2>Models fit() data!</h2>
+      <h2>Models <code>fit()</code> data!</h2>
       <h3></h3>
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import mixtape.cluster
+>>> import mixtape.cluster
 
-trajectories = [np.random.normal(size=(100, 3))]
+>>> trajectories = [np.random.normal(size=(100, 3))]
 
-clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
-clusterer.fit(trajectories)
+>>> clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
+>>> clusterer.fit(trajectories)
 
-clusterer.cluster_centers_
+>>> clusterer.cluster_centers_
 
 array([[-0.22340896,  1.0745301 , -0.40222902],
        [-0.25410827, -0.11611431,  0.95394687],
@@ -213,44 +212,44 @@ array([[-0.22340896,  1.0745301 , -0.40222902],
 <slide  >
   
     <hgroup>
-      <h2>fit() acts on lists of sequences</h2>
+      <h2><code>fit()</code> acts on lists of sequences</h2>
       <h3></h3>
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import mixtape.markovstatemodel
+>>> import mixtape.markovstatemodel
 
-trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
+>>> trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
 
-msm = mixtape.markovstatemodel.MarkovStateModel()
-msm.fit(trajectories)
+>>> msm = mixtape.markovstatemodel.MarkovStateModel()
+>>> msm.fit(trajectories)
 
-msm.transmat_
+>>> msm.transmat_
 
 array([[ 0.75      ,  0.25      ],
        [ 0.33333333,  0.66666667]])
 
 </pre>
 
-<p>This is different from sklearn, which uses 2D arrays!!!</p></article>
+<p>This is different from sklearn, which uses 2D arrays.</p></article>
  
 </slide>
 
 <slide  >
   
     <hgroup>
-      <h2>Models transform() data!</h2>
+      <h2>Models <code>transform()</code> data!</h2>
       <h3></h3>
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import mixtape.cluster
+>>> import mixtape.cluster
 
-trajectories = [np.random.normal(size=(100, 3))]
+>>> trajectories = [np.random.normal(size=(100, 3))]
 
-clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
-clusterer.fit(trajectories)
-Y = clusterer.transform(trajectories)
+>>> clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
+>>> clusterer.fit(trajectories)
+>>> Y = clusterer.transform(trajectories)
 
 [array([5, 6, 6, 0, 5, 5, 1, 6, 1, 7, 5, 7, 4, 2, 2, 2, 5, 3, 0, 0, 1, 3, 0,
         5, 5, 0, 4, 0, 0, 3, 4, 7, 3, 5, 5, 5, 6, 1, 1, 0, 0, 7, 4, 4, 2, 6,
@@ -258,34 +257,38 @@ Y = clusterer.transform(trajectories)
         3, 2, 7, 6, 7, 2, 5, 1, 0, 3, 6, 3, 2, 0, 5, 0, 3, 4, 2, 5, 4, 1, 5,
         5, 4, 3, 3, 7, 2, 1, 4], dtype=int32)]
 
-</pre></article>
+</pre>
+
+<p>Moving the data-items from one "space" / representation into another.</p></article>
  
 </slide>
 
 <slide  >
   
     <hgroup>
-      <h2>Pipeline() concatenates models!</h2>
+      <h2><code>Pipeline()</code> concatenates models!</h2>
       <h3></h3>
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import mixtape.cluster, mixtape.markovstatemodel
-import sklearn.pipeline
+>>> import mixtape.cluster, mixtape.markovstatemodel
+>>> from sklearn.pipeline import Pipeline
 
-trajectories = [np.random.normal(size=(100, 3))]
+>>> trajectories = [np.random.normal(size=(100, 3))]
 
-clusterer = mixtape.cluster.KMeans(n_clusters=2, n_init=10)
-msm = mixtape.markovstatemodel.MarkovStateModel()
-pipeline = sklearn.pipeline.Pipeline([("clusterer", clusterer), ("msm", msm)])
+>>> clusterer = mixtape.cluster.KMeans(n_clusters=2, n_init=10)
+>>> msm = mixtape.markovstatemodel.MarkovStateModel()
+>>> pipeline = Pipeline([("clusterer", clusterer), ("msm", msm)])
 
-pipeline.fit(trajectories)
-msm.transmat_
+>>> pipeline.fit(trajectories)
+>>> msm.transmat_
 
 array([[ 0.53703704,  0.46296296],
        [ 0.53333333,  0.46666667]])
 
-</pre></article>
+</pre>
+
+<p>Data "flows" through transformations in the pipeline.</p></article>
  
 </slide>
 
@@ -296,22 +299,24 @@ array([[ 0.53703704,  0.46296296],
       <h3></h3>
     </hgroup>
     <article ><p>Featurizers wrap MDTraj functions via the <code>transform()</code> function</p>
-<pre class="prettyprint" data-lang="python">
+<div style="float:right;">
+<img height=225 src=figures/rama.png />
+</div>
 
-import mixtape.featurizer, mixtape.datasets
+<pre class="prettyprint" style="width:75%" data-lang="python">
 
-trajectories = mixtape.datasets.alanine_dipeptide.fetch_alanine_dipeptide()["trajectories"]
+>>> from mixtape.featurizer import DihedralFeaturizer
+>>> from mixtape.datasets import fetch_alanine_dipeptide
+>>> from matplotlib.pyplot import hexbin, plot
 
-featurizer = mixtape.featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
-X = featurizer.transform(trajectories)
-phi, psi = np.concatenate(X).T * 180 / np.pi
-hexbin(phi, psi)
+>>> trajectories = fetch_alanine_dipeptide()["trajectories"]
+>>> featurizer = DihedralFeaturizer(
+...        ["phi", "psi"], sincos=False)
+>>> X = featurizer.transform(trajectories)
+>>> phi, psi = np.rad2deg(np.concatenate(X).T)
 
-</pre>
-
-<p><center>
-<img height=125 src=figures/rama.png />
-</center></p></article>
+>>> hexbin(phi, psi)
+</pre></article>
  
 </slide>
 
@@ -323,13 +328,15 @@ hexbin(phi, psi)
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import glob
-import mdtraj as md
+>>> import glob
+>>> import mdtraj as md
 
-filenames = glob.glob("./Trajectories/*.h5")
-trajectories = [md.load(filename) for filename in filenames]
+>>> filenames = glob.glob("./Trajectories/*.h5")
+>>> trajectories = [md.load(filename) for filename in filenames]
 
-</pre></article>
+</pre>
+
+<p>Note: for big datasets, you can get fancies with <code>md.iterload</code>.</p></article>
  
 </slide>
 
@@ -341,26 +348,44 @@ trajectories = [md.load(filename) for filename in filenames]
     </hgroup>
     <article ><pre class="prettyprint" data-lang="python">
 
-import mdtraj as md
-import mixtape.featurizer, mixtape.datasets, mixtape.cluster, mixtape.markovstatemodel
-import sklearn.pipeline
+>>> import mdtraj as md
+>>> from mixtape.featurizer import DihedralFeaturizer
+>>> from mixtape.datasets import fetch_alanine_dipeptide
+>>> from mixtape.cluster import KCenters
+>>> from mixtape.markovstatemodel import MarkovStateModel
+>>> from sklearn.pipeline import Pipeline
 
-trajectories = mixtape.datasets.alanine_dipeptide.fetch_alanine_dipeptide()["trajectories"]
+>>> trajectories = fetch_alanine_dipeptide()["trajectories"]
 
-cluster = mixtape.cluster.KCenters(n_clusters=10, metric=md.rmsd)
-msm = mixtape.markovstatemodel.MarkovStateModel()
-pipeline = sklearn.pipeline.Pipeline([("cluster", cluster), ("msm", msm)])
+>>> cluster = KCenters(n_clusters=10, metric=md.rmsd)
+>>> msm = MarkovStateModel()
+>>> pipeline = Pipeline([("cluster", cluster), ("msm", msm)])
 
-pipeline.fit(trajectories)
-
-featurizer = mixtape.featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
-X = featurizer.transform(trajectories)
-phi, psi = np.concatenate(X).T * 180 / np.pi
-hexbin(phi, psi)
-phi, psi = featurizer.transform([cluster.cluster_centers_])[0].T * 180 / np.pi
-plot(phi, psi, 'k*', markersize=25)
-
+>>> pipeline.fit(trajectories)
 </pre></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Old-school MSMs (contd.)</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><pre class="prettyprint" data-lang="python">
+# ...
+>>> featurizer = DihedralFeaturizer(["phi", "psi"], sincos=False)
+>>> X = featurizer.transform(trajectories)
+>>> phi, psi = np.rad2deg(np.concatenate(X).T)
+
+>>> hexbin(phi, psi)
+>>> phi, psi = np.rad2deg(featurizer.transform([cluster.cluster_centers_])[0].T)
+>>> plot(phi, psi, 'w*', markersize=25)
+</pre>
+
+<p><center>
+<img height=250 src="figures/rama-cluster-centers.png">
+</center></p></article>
  
 </slide>
 
@@ -381,16 +406,17 @@ for fold, (train_index, test_index) in enumerate(cv):
     test_data = [trajectories[i] for i in test_index]
     model.fit(train_data)
     model.score(test_data)
+</pre>
 
-</pre></article>
+<p>Also scikit-learn's <code>GridSearchCV</code> and <code>RandomizedSearchCV</code>.</p></article>
  
 </slide>
 
 <slide  >
   
     <hgroup>
-      <h2>Model Scoring with GMRQ: KCenters is Bad!</h2>
-      <h3></h3>
+      <h2>Model Scoring with GMRQ</h2>
+      <h3>We can improve a lot over KMeans.</h3>
     </hgroup>
     <article ><p><center>
 <img height=355 src=figures/SETD2_kcenters.png />
@@ -403,10 +429,10 @@ for fold, (train_index, test_index) in enumerate(cv):
 <slide class="thank-you-slide segue nobackground">
   <!-- <aside class="gdbar right"><img src="images/google_developers_icon_128.png"></aside> -->
   <article class="flexbox vleft auto-fadein">
-    <h2></h2>
-    <p></p>
+    <h2> Thanks!</h2>
+    <p> Contributors: Robert M., Kyle B., Bharath R., Matt H., Steve K., Gert K., Muneeb S.</p>
   </article>
-  <p data-config-contact class="auto-fadein"></p>
+  <p data-config-contact class="auto-fadein"> <span>www</span> <a href="http://msmbuilder-mixtape.s3-website-us-west-1.amazonaws.com/latest/index.html">mixtape docs</a><br/> <span>github</span> <a href="https://github.com/rmcgibbo/mixtape">mixtape</a></p>
   </p>
 </slide>
 
