@@ -1,10 +1,6 @@
-% title: Conformational Dynamics in Mixtape
+% title: Conformational Dynamics in MSMBuilder3
 % author: Kyle A. Beauchamp
-% author: September 3, 2014
-% thankyou: Thanks!
-% thankyou_details: Contributors: Robert M., Kyle B., Bharath R., Matt H., Steve K., Gert K., Muneeb S.
-% contact: <span>www</span> <a href="http://msmbuilder-mixtape.s3-website-us-west-1.amazonaws.com/latest/index.html">mixtape docs</a>
-% contact: <span>github</span> <a href="https://github.com/rmcgibbo/mixtape">mixtape</a>
+% author: Updated Feb. 27, 2015 (msmbuilder v3.1)
 
 ---
 title: Old-School Analysis of MD Data
@@ -63,7 +59,7 @@ title: Enter Data Science
 
 
 ---
-title: Mixtape: Philosophy
+title: MSMBuilder: Philosophy
 
 Let's build on [scikit-learn](http://scikit-learn.org/stable/) idioms:
 
@@ -80,14 +76,14 @@ title: Everything is a <code>Model()</code>!
 
 <pre class="prettyprint" data-lang="python">
 
->>> import mixtape.cluster
->>> clusterer = mixtape.cluster.KMeans(n_clusters=4)
+>>> import msmbuilder.cluster
+>>> clusterer = msmbuilder.cluster.KMeans(n_clusters=4)
 
->>> import mixtape.tica
->>> tica = mixtape.tica.tICA(n_components=3)
+>>> import msmbuilder.decomposition
+>>> tica = msmbuilder.decomposition.tICA(n_components=3)
 
->>> import mixtape.markovstatemodel
->>> msm = mixtape.markovstatemodel.MarkovStateModel()
+>>> import msmbuilder.msm
+>>> msm = msmbuilder.msm.MarkovStateModel()
 
 </pre>
 
@@ -104,11 +100,11 @@ title: Models <code>fit()</code> data!
 
 <pre class="prettyprint" data-lang="python">
 
->>> import mixtape.cluster
+>>> import msmbuilder.cluster
 
 >>> trajectories = [np.random.normal(size=(100, 3))]
 
->>> clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
+>>> clusterer = msmbuilder.cluster.KMeans(n_clusters=4, n_init=10)
 >>> clusterer.fit(trajectories)
 
 >>> clusterer.cluster_centers_
@@ -130,11 +126,11 @@ title: <code>fit()</code> acts on lists of sequences
 
 <pre class="prettyprint" data-lang="python">
 
->>> import mixtape.markovstatemodel
+>>> import msmbuilder.msm
 
 >>> trajectories = [np.array([0, 0, 0, 1, 1, 1, 0, 0])]
 
->>> msm = mixtape.markovstatemodel.MarkovStateModel()
+>>> msm = msmbuilder.msm.MarkovStateModel()
 >>> msm.fit(trajectories)
 
 >>> msm.transmat_
@@ -152,11 +148,11 @@ title: Models <code>transform()</code> data!
 
 <pre class="prettyprint" data-lang="python">
 
->>> import mixtape.cluster
+>>> import msmbuilder.cluster
 
 >>> trajectories = [np.random.normal(size=(100, 3))]
 
->>> clusterer = mixtape.cluster.KMeans(n_clusters=4, n_init=10)
+>>> clusterer = msmbuilder.cluster.KMeans(n_clusters=4, n_init=10)
 >>> clusterer.fit(trajectories)
 >>> Y = clusterer.transform(trajectories)
 
@@ -175,13 +171,13 @@ title: <code>Pipeline()</code> concatenates models!
 
 <pre class="prettyprint" data-lang="python">
 
->>> import mixtape.cluster, mixtape.markovstatemodel
+>>> import msmbuilder.cluster, msmbuilder.msm
 >>> from sklearn.pipeline import Pipeline
 
 >>> trajectories = [np.random.normal(size=(100, 3))]
 
->>> clusterer = mixtape.cluster.KMeans(n_clusters=2, n_init=10)
->>> msm = mixtape.markovstatemodel.MarkovStateModel()
+>>> clusterer = msmbuilder.cluster.KMeans(n_clusters=2, n_init=10)
+>>> msm = msmbuilder.msm.MarkovStateModel()
 >>> pipeline = Pipeline([("clusterer", clusterer), ("msm", msm)])
 
 >>> pipeline.fit(trajectories)
@@ -206,8 +202,8 @@ Featurizers wrap MDTraj functions via the `transform()` function
 
 <pre class="prettyprint" style="width:75%" data-lang="python">
 
->>> from mixtape.featurizer import DihedralFeaturizer
->>> from mixtape.datasets import fetch_alanine_dipeptide
+>>> from msmbuilder.featurizer import DihedralFeaturizer
+>>> from msmbuilder.example_datasets import fetch_alanine_dipeptide
 >>> from matplotlib.pyplot import hexbin, plot
 
 >>> trajectories = fetch_alanine_dipeptide()["trajectories"]
@@ -242,10 +238,10 @@ title: Old-school MSMs
 <pre class="prettyprint" data-lang="python">
 
 >>> import mdtraj as md
->>> from mixtape.featurizer import DihedralFeaturizer
->>> from mixtape.datasets import fetch_alanine_dipeptide
->>> from mixtape.cluster import KCenters
->>> from mixtape.markovstatemodel import MarkovStateModel
+>>> from msmbuilder.featurizer import DihedralFeaturizer
+>>> from msmbuilder.example_datasets import fetch_alanine_dipeptide
+>>> from msmbuilder.cluster import KCenters
+>>> from msmbuilder.msm import MarkovStateModel
 >>> from sklearn.pipeline import Pipeline
 
 >>> trajectories = fetch_alanine_dipeptide()["trajectories"]
@@ -292,16 +288,5 @@ for fold, (train_index, test_index) in enumerate(cv):
 </pre>
 
 Also scikit-learn's <code>GridSearchCV</code> and <code>RandomizedSearchCV</code>.
-
-
----
-title: Model Scoring with GMRQ
-subtitle: We can improve a lot over KMeans.
-
-<center>
-<img height=355 src=figures/SETD2_kcenters.png />
-<img height=355 src=figures/SETD2_tICA_KMeans.png />
-</center>
-
 
 
