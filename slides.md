@@ -70,7 +70,7 @@ Builds on [scikit-learn](http://scikit-learn.org/stable/) idioms:
 - Models are `fit()` on data.
 - Models learn `attributes_`.
 - `Pipeline()` concatenate models.
-- Use Best-Practices (cross-validation)
+- Use best-practices (cross-validation)
 
 <footer class="source"> 
 http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
