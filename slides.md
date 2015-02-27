@@ -243,7 +243,7 @@ title: Old-school MSMs
 
 <pre class="prettyprint" data-lang="python">
 
->>> from msmbuilder import example_datasets, cluster, msm
+>>> from msmbuilder import example_datasets, cluster, msm, featurizer
 >>> from sklearn.pipeline import make_pipeline
 
 >>> dataset = example_datasets.alanine_dipeptide.fetch_alanine_dipeptide()  # From Figshare!
@@ -262,18 +262,30 @@ title: Old-school MSMs (contd.)
 
 <pre class="prettyprint" data-lang="python">
 # ...
->>> from msmbuilder.featurizer import DihedralFeaturizer
->>> featurizer = DihedralFeaturizer(["phi", "psi"], sincos=False)
->>> X = featurizer.transform(trajectories)
+>>> dih_featurizer = DihedralFeaturizer(["phi", "psi"], sincos=False)
+>>> X = dih_featurizer.transform(trajectories)
 >>> phi, psi = np.rad2deg(np.concatenate(X).T)
 
 >>> hexbin(phi, psi)
->>> phi, psi = np.rad2deg(featurizer.transform([clusterer.cluster_centers_])[0].T)
+>>> phi, psi = np.rad2deg(dih_featurizer.transform([clusterer.cluster_centers_])[0].T)
 >>> plot(phi, psi, 'w*', markersize=25)
 </pre>
 
 <center>
 <img height=250 src="figures/rama-cluster-centers.png">
+</center>
+
+
+---
+title: Old-school MSMs (contd.)
+
+<pre class="prettyprint" data-lang="python">
+# ...
+>>> clusterer.cluster_centers_.save("./cluster_centers.pdb")
+</pre>
+
+<center>
+<img height=400 src="figures/ala_cluster_centers.png">
 </center>
 
 ---
