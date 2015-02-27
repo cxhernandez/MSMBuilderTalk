@@ -262,7 +262,7 @@ title: Old-school MSMs (contd.)
 
 <pre class="prettyprint" data-lang="python">
 # ...
->>> dih_featurizer = DihedralFeaturizer(["phi", "psi"], sincos=False)
+>>> dih_featurizer = featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
 >>> X = dih_featurizer.transform(trajectories)
 >>> phi, psi = np.rad2deg(np.concatenate(X).T)
 
