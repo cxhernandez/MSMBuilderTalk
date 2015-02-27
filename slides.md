@@ -71,6 +71,24 @@ Let's build on [scikit-learn](http://scikit-learn.org/stable/) idioms:
 - Encourage Best-Practices (cross-validation)
 
 ---
+title: MSMBuilder3: Design
+
+<div style="float:right; margin-top:-100px">
+<img src="figures/flow-chart.png" height="600">
+</div>
+
+Builds on [scikit-learn](http://scikit-learn.org/stable/) idioms:
+
+- Everything is a `Model`.
+- Models are `fit()` on data.
+- Models learn `attributes_`.
+- `Pipeline()` concatenate models.
+
+<footer class="source"> 
+http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
+</footer>
+
+---
 title: Everything is a <code>Model()</code>!
 
 

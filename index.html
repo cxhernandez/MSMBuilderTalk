@@ -168,6 +168,29 @@ we need our own custom algorithms and implementations? No. </li>
 <slide  >
   
     <hgroup>
+      <h2>MSMBuilder3: Design</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><div style="float:right; margin-top:-100px">
+<img src="figures/flow-chart.png" height="600">
+</div>
+
+<p>Builds on <a href="http://scikit-learn.org/stable/">scikit-learn</a> idioms:</p>
+<ul>
+<li>Everything is a <code>Model</code>.</li>
+<li>Models are <code>fit()</code> on data.</li>
+<li>Models learn <code>attributes_</code>.</li>
+<li><code>Pipeline()</code> concatenate models.</li>
+</ul>
+<footer class="source"> 
+http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
+</footer></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
       <h2>Everything is a <code>Model()</code>!</h2>
       <h3></h3>
     </hgroup>
