@@ -236,27 +236,25 @@ title: Loading Trajectories
 
 </pre>
 
-Note: for big datasets, you can get fancies with ``md.iterload``.
+Note: for big datasets, you can get fancy with ``md.iterload``.
 
 ---
 title: Old-school MSMs
 
 <pre class="prettyprint" data-lang="python">
 
->>> import mdtraj as md
->>> from msmbuilder.featurizer import DihedralFeaturizer
->>> from msmbuilder.example_datasets import fetch_alanine_dipeptide
->>> from msmbuilder.cluster import KCenters
->>> from msmbuilder.msm import MarkovStateModel
->>> from sklearn.pipeline import Pipeline
+>>> from msmbuilder import example_datasets, cluster, msm
+>>> from sklearn.pipeline import make_pipeline
 
->>> trajectories = fetch_alanine_dipeptide()["trajectories"]
+>>> dataset = example_datasets.alanine_dipeptide.fetch_alanine_dipeptide()  # From Figshare!
+>>> trajectories = dataset["trajectories"]  # List of MDTraj Trajectory Objects
 
->>> cluster = KCenters(n_clusters=10, metric=md.rmsd)
->>> msm = MarkovStateModel()
->>> pipeline = Pipeline([("cluster", cluster), ("msm", msm)])
+>>> clusterer = cluster.KCenters(n_clusters=10, metric="rmsd")
+>>> msm_model = msm.MarkovStateModel()
 
+>>> pipeline = make_pipeline(clusterer, msm_model)
 >>> pipeline.fit(trajectories)
+
 </pre>
 
 ---
@@ -264,12 +262,13 @@ title: Old-school MSMs (contd.)
 
 <pre class="prettyprint" data-lang="python">
 # ...
+>>> from msmbuilder.featurizer import DihedralFeaturizer
 >>> featurizer = DihedralFeaturizer(["phi", "psi"], sincos=False)
 >>> X = featurizer.transform(trajectories)
 >>> phi, psi = np.rad2deg(np.concatenate(X).T)
 
 >>> hexbin(phi, psi)
->>> phi, psi = np.rad2deg(featurizer.transform([cluster.cluster_centers_])[0].T)
+>>> phi, psi = np.rad2deg(featurizer.transform([clusterer.cluster_centers_])[0].T)
 >>> plot(phi, psi, 'w*', markersize=25)
 </pre>
 
