@@ -151,23 +151,6 @@ we need our own custom algorithms and implementations? No. </li>
 <slide  >
   
     <hgroup>
-      <h2>MSMBuilder: Philosophy</h2>
-      <h3></h3>
-    </hgroup>
-    <article ><p>Let's build on <a href="http://scikit-learn.org/stable/">scikit-learn</a> idioms:</p>
-<ul>
-<li>Everything is a <code>Model()</code>!</li>
-<li>Models <code>fit()</code> data!</li>
-<li>Models <code>transform()</code> data!</li>
-<li><code>Pipeline()</code> concatenates models!</li>
-<li>Encourage Best-Practices (cross-validation)</li>
-</ul></article>
- 
-</slide>
-
-<slide  >
-  
-    <hgroup>
       <h2>MSMBuilder3: Design</h2>
       <h3></h3>
     </hgroup>
@@ -181,6 +164,7 @@ we need our own custom algorithms and implementations? No. </li>
 <li>Models are <code>fit()</code> on data.</li>
 <li>Models learn <code>attributes_</code>.</li>
 <li><code>Pipeline()</code> concatenate models.</li>
+<li>Use Best-Practices (cross-validation)</li>
 </ul>
 <footer class="source"> 
 http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/

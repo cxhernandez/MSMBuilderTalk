@@ -57,19 +57,6 @@ title: Enter Data Science
     * E.g: is clustering _that_ special and MD-specific such that
     we need our own custom algorithms and implementations? No. 
 
-
----
-title: MSMBuilder: Philosophy
-
-Let's build on [scikit-learn](http://scikit-learn.org/stable/) idioms:
-
- 
-- Everything is a ``Model()``!
-- Models ``fit()`` data!
-- Models ``transform()`` data!
-- ``Pipeline()`` concatenates models!
-- Encourage Best-Practices (cross-validation)
-
 ---
 title: MSMBuilder3: Design
 
@@ -83,6 +70,7 @@ Builds on [scikit-learn](http://scikit-learn.org/stable/) idioms:
 - Models are `fit()` on data.
 - Models learn `attributes_`.
 - `Pipeline()` concatenate models.
+- Use Best-Practices (cross-validation)
 
 <footer class="source"> 
 http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
