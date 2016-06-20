@@ -717,6 +717,51 @@ trials:
  
 </slide>
 
+<slide  >
+  
+    <hgroup>
+      <h2>Osprey: Running a Job</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>Simple command-line interface, easy to run on any cluster</p>
+<pre class="prettyprint" data-lang="SHELL">
+
+$ osprey worker -n 100 config.yaml
+...
+----------------------------------------------------------------------
+Beginning iteration                                           10 / 100
+----------------------------------------------------------------------
+Loading trials database: sqlite:///trials.db...
+History contains: 9 trials
+Choosing next hyperparameters with gp...
+  {'tica__n_components': 2, 'tica__lag_time': 180, 'cluster__n_clusters': 36}
+(gp took 0.000 s)
+...
+Success! Model score = 4.214510
+(best score so far   = 4.593165)
+</pre></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
+      <h2>Osprey: Real-Time Analytics</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>Osprey also makes it easy to create interactive dashboards</p>
+<pre class="prettyprint" data-lang="SHELL">
+
+$ osprey plot config.yaml
+</pre>
+
+<div style="text-align: center">
+<img height=350 style="padding-top: .5em;" src="figures/osprey-dash.png"/>
+<img height=350 style="padding-top: .5em;" src="figures/osprey-dash2.png"/>
+</div></article>
+ 
+</slide>
+
 
 <slide class="thank-you-slide segue nobackground">
   <!-- <aside class="gdbar right"><img src="images/google_developers_icon_128.png"></aside> -->
