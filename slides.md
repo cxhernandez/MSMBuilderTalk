@@ -77,8 +77,8 @@ Builds on [scikit-learn](http://scikit-learn.org/stable/) idioms:
 - Use best-practices (cross-validation)
 
 <footer class="source">
-<a href="http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/">
-http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
+<a href="http://msmbuilder.org/3.5.0/apipatterns.html">
+http://msmbuilder.org/3.5.0/apipatterns.html
 </a>
 </footer>
 
@@ -390,6 +390,35 @@ http://msmbuilder.org/3.5.0/gmrq.html
 
 
 ---
+title: Command-line Tools
+
+We also offer an easy-to-use CLI for the API-averse
+
+<pre class="prettyprint" data-lang="shell">
+
+$ msmb DihedralFeaturizer --top my_protein.pdb --trjs "*.xtc" \
+    --transformed diheds --out featurizer.pkl
+
+$ msmb tICA -i diheds/ --out tica_model.pkl \
+    --transformed tica_trajs.h5 --n_components 4
+
+$ msmb MiniBatchKMeans -i tica_trajs.h5 \
+    --transformed labeled_trajs.h5 --n_clusters 100
+
+$ msmb MarkovStateModel -i labeled_trajs.h5 \
+   --out msm.pkl --lag_time 1
+
+</pre>
+
+
+<footer class="source">
+<a href="http://msmbuilder.org/3.5.0/examples/Intro/Intro.cmd.html">
+http://msmbuilder.org/3.5.0/examples/Intro/Intro.cmd.html
+</a>
+</footer>
+
+
+---
 title: Related Projects
 
 We also maintain:
@@ -444,7 +473,7 @@ strategy:
 
     name: gp  # or random, grid, hyperopt_tpe
     params:
-      seed: 50
+      seeds: 50
 </pre>
 
 ---

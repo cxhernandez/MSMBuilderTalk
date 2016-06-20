@@ -167,8 +167,8 @@ we need our own custom algorithms and implementations?</li>
 <li>Use best-practices (cross-validation)</li>
 </ul>
 <footer class="source">
-<a href="http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/">
-http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
+<a href="http://msmbuilder.org/3.5.0/apipatterns.html">
+http://msmbuilder.org/3.5.0/apipatterns.html
 </a>
 </footer></article>
  
@@ -528,6 +528,37 @@ http://msmbuilder.org/3.5.0/gmrq.html
 <slide  >
   
     <hgroup>
+      <h2>Command-line Tools</h2>
+      <h3></h3>
+    </hgroup>
+    <article ><p>We also offer an easy-to-use CLI for the API-averse</p>
+<pre class="prettyprint" data-lang="shell">
+
+$ msmb DihedralFeaturizer --top my_protein.pdb --trjs "*.xtc" \
+    --transformed diheds --out featurizer.pkl
+
+$ msmb tICA -i diheds/ --out tica_model.pkl \
+    --transformed tica_trajs.h5 --n_components 4
+
+$ msmb MiniBatchKMeans -i tica_trajs.h5 \
+    --transformed labeled_trajs.h5 --n_clusters 100
+
+$ msmb MarkovStateModel -i labeled_trajs.h5 \
+   --out msm.pkl --lag_time 1
+
+</pre>
+
+<footer class="source">
+<a href="http://msmbuilder.org/3.5.0/examples/Intro/Intro.cmd.html">
+http://msmbuilder.org/3.5.0/examples/Intro/Intro.cmd.html
+</a>
+</footer></article>
+ 
+</slide>
+
+<slide  >
+  
+    <hgroup>
       <h2>Related Projects</h2>
       <h3></h3>
     </hgroup>
@@ -596,7 +627,7 @@ strategy:
 
     name: gp  # or random, grid, hyperopt_tpe
     params:
-      seed: 50
+      seeds: 50
 </pre></article>
  
 </slide>
