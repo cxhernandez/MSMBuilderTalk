@@ -544,3 +544,40 @@ trials:
 <footer class="source">
 *you'll still need to copy your data to each cluster, however
 </footer>
+
+---
+title: Osprey: Running a Job
+
+Simple command-line interface, easy to run on any cluster
+
+<pre class="prettyprint" data-lang="SHELL">
+
+$ osprey worker -n 100 config.yaml
+...
+----------------------------------------------------------------------
+Beginning iteration                                           10 / 100
+----------------------------------------------------------------------
+Loading trials database: sqlite:///trials.db...
+History contains: 9 trials
+Choosing next hyperparameters with gp...
+  {'tica__n_components': 2, 'tica__lag_time': 180, 'cluster__n_clusters': 36}
+(gp took 0.000 s)
+...
+Success! Model score = 4.214510
+(best score so far   = 4.593165)
+</pre>
+
+---
+title: Osprey: Real-Time Analytics
+
+Osprey also makes it easy to create interactive dashboards
+
+<pre class="prettyprint" data-lang="SHELL">
+
+$ osprey plot config.yaml
+</pre>
+
+<div style="text-align: center">
+<img height=350 style="padding-top: .5em;" src="figures/osprey-dash.png"/>
+<img height=350 style="padding-top: .5em;" src="figures/osprey-dash2.png"/>
+</div>
