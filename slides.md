@@ -1,20 +1,24 @@
-% title: Conformational Dynamics in MSMBuilder3
-% author: Kyle A. Beauchamp
-% author: Updated Feb. 27, 2015 (msmbuilder v3.1)
+
+
+% title: <div style="text-align: center; margin-left: 2.5em; margin-bottom: -.3em;"> <img height=300 src="http://msmbuilder.org/3.5.0/_static/logo.png"></div>
+% author: Carlos X. Hernández
+% author: Updated: Jun. 23, 2016 (msmbuilder v3.5)
+
+
 
 ---
 title: Old-School Analysis of MD Data
 
 - Analysis happens in walled gardens (Gromacs, Amber, VMD)
 - Exclusively command line interfaces, C and Fortran code
-- Duplication of statistical algorithms by non-experts (e.g. chemists)
+- Duplication of statistical algorithms by non-experts (e.g. chemists, biologists)
 - Possible code maintainability issues?
 
 ---
 title: Jarvis Patrick Clustering in Gromacs
-subtitle: <a href="https://github.com/gromacs/gromacs/blob/master/src/gromacs/gmxana/gmx_cluster.c">real code in gromacs</a>
+subtitle: <a href="https://github.com/gromacs/gromacs/blob/master/src/gromacs/gmxana/gmx_cluster.cpp#L502">real code in gromacs</a>
 
-<pre class="prettyprint" data-lang="c">
+<pre class="prettyprint" data-lang="c++">
 
 static void jarvis_patrick(int n1, real **mat, int M, int P,
 real rmsdcut, t_clusters *clust) {
@@ -35,7 +39,7 @@ rmsdcut = 10000;
 ---
 title: Jarvis Patrick Clustering in Gromacs (Cont.)
 
-<pre class="prettyprint" data-lang="c">
+<pre class="prettyprint" data-lang="c++">
 
 // Five more pages of this
 // You get the idea
@@ -54,8 +58,8 @@ title: Enter Data Science
 - Thousands of experts are using machine learning approaches
 - Well-tested, performant, and facile implementations are available
 - Writing your own is not the way to go!
-    * E.g: is clustering _that_ special and MD-specific such that
-    we need our own custom algorithms and implementations? No. 
+    * E.g: Is clustering _that_ special and MD-specific such that
+    we need our own custom algorithms and implementations?
 
 ---
 title: MSMBuilder3: Design
@@ -72,8 +76,10 @@ Builds on [scikit-learn](http://scikit-learn.org/stable/) idioms:
 - `Pipeline()` concatenate models.
 - Use best-practices (cross-validation)
 
-<footer class="source"> 
+<footer class="source">
+<a href="http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/">
 http://rmcgibbo.org/posts/whats-new-in-msmbuilder3/
+</a>
 </footer>
 
 ---
@@ -96,7 +102,7 @@ title: Everything is a <code>Model()</code>!
 Hyperparameters go in the constructor.
 
 
-<footer class="source"> 
+<footer class="source">
 Actually, everything is a <code>sklearn.base.BaseEstimator()</code>
 </footer>
 
@@ -195,9 +201,28 @@ array([[ 0.53703704,  0.46296296],
 </pre>
 Data "flows" through transformations in the pipeline.
 
+---
+title: Loading Trajectories
+
+You can use MDTraj to load your trajectory files
+
+<pre class="prettyprint" data-lang="python">
+
+>>> import glob
+>>> import mdtraj as md
+
+>>> filenames = glob.glob("./Trajectories/ala_*.h5")
+>>> trajectories = [md.load(filename) for filename in filenames]
+
+</pre>
+
+<footer class="source">
+Note: for big datasets, you can get fancy with <code><a href="http://mdtraj.org/latest/api/generated/mdtraj.iterload.html">md.iterload</a></code>.
+</footer>
+
 
 ---
-title: Featurizing Trajectories
+title: Featurization
 
 Featurizers wrap MDTraj functions via the `transform()` function
 
@@ -209,10 +234,8 @@ Featurizers wrap MDTraj functions via the `transform()` function
 <pre class="prettyprint" style="width:75%" data-lang="python">
 
 >>> from msmbuilder.featurizer import DihedralFeaturizer
->>> from msmbuilder.example_datasets import fetch_alanine_dipeptide
 >>> from matplotlib.pyplot import hexbin, plot
 
->>> trajectories = fetch_alanine_dipeptide()["trajectories"]
 >>> featurizer = DihedralFeaturizer(
 ...        ["phi", "psi"], sincos=False)
 >>> X = featurizer.transform(trajectories)
@@ -221,81 +244,133 @@ Featurizers wrap MDTraj functions via the `transform()` function
 >>> hexbin(phi, psi)
 </pre>
 
-
+<footer class="source">
+<a href="http://msmbuilder.org/3.5.0/featurization.html">
+http://msmbuilder.org/3.5.0/featurization.html
+</a>
+</footer>
 
 ---
-title: Loading Trajectories
+title: Featurization (Cont.)
+
+You can even combine featurizers with <code>FeatureSelector</code>
 
 <pre class="prettyprint" data-lang="python">
 
->>> import glob
->>> import mdtraj as md
+>>> from msmbuilder.featurizer import DihedralFeaturizer, ContactFeaturizer
+>>> from msmbuilder.feature_selection import FeatureSelector
 
->>> filenames = glob.glob("./Trajectories/*.h5")
->>> trajectories = [md.load(filename) for filename in filenames]
+>>> dihedrals = DihedralFeaturizer(
+...         ["phi", "psi"], sincos=True)
+>>> contacts = ContactFeaturizer(scheme='ca')
+>>> featurizer = FeatureSelector([('dihedrals', dihedrals),
+...                               ('contacts', contacts)])
+>>> X = featurizer.transform(trajectories)
 
 </pre>
 
-Note: for big datasets, you can get fancy with ``md.iterload``.
+<footer class="source">
+<a href="http://msmbuilder.org/3.5.0/featurization.html">
+http://msmbuilder.org/3.5.0/featurization.html
+</a>
+</footer>
+
 
 ---
-title: Old-school MSMs
+title: Preprocessing
+
+Preprocessors normalize/whiten your data
+
 
 <pre class="prettyprint" data-lang="python">
 
->>> from msmbuilder import example_datasets, cluster, msm, featurizer
->>> from sklearn.pipeline import make_pipeline
+>>> from msmbuilder.preprocessing import RobustScaler
+>>> scaler = RobustScaler()
 
->>> dataset = example_datasets.alanine_dipeptide.fetch_alanine_dipeptide()  # From Figshare!
->>> trajectories = dataset["trajectories"]  # List of MDTraj Trajectory Objects
-
->>> clusterer = cluster.KCenters(n_clusters=10, metric="rmsd")
->>> msm_model = msm.MarkovStateModel()
-
->>> pipeline = make_pipeline(clusterer, msm_model)
->>> pipeline.fit(trajectories)
-
+>>> Y = scaler.transform(X)
 </pre>
 
+This is essential when combining different featurizers!
+
+Also check out <code>MinMaxScaler</code> and <code>StandardScaler</code>
+
 ---
-title: Old-school MSMs (contd.)
+title: Decomposition
 
-<pre class="prettyprint" data-lang="python">
-# ...
->>> dih_featurizer = featurizer.DihedralFeaturizer(["phi", "psi"], sincos=False)
->>> X = dih_featurizer.transform(trajectories)
->>> phi, psi = np.rad2deg(np.concatenate(X).T)
+Reduce the dimensionality of your data
 
->>> hexbin(phi, psi)
->>> phi, psi = np.rad2deg(dih_featurizer.transform([clusterer.cluster_centers_])[0].T)
->>> plot(phi, psi, 'w*', markersize=25)
+<div style="float:right;">
+<img width=275 src="http://msmbuilder.org/3.5.0/_images/tica_vs_pca.png"/>
+<figcaption style="font-size: 50%; text-align: center;">
+tICA finds the slowest degrees<br>of freedom in time-series data
+</figcaption>
+</div>
+
+<pre class="prettyprint" style="width:75%"  data-lang="python">
+
+>>> from msmbuilder.decomposition import tICA
+
+>>> tica = tICA(n_components=2, lagtime=5)
+>>> Y = tica.fit_transform(X)
 </pre>
 
-<center>
-<img height=250 src="figures/rama-cluster-centers.png">
-</center>
+Also check out <code>PCA</code> and <code>SparseTICA</code>
 
-
----
-title: Old-school MSMs (contd.)
-
-<pre class="prettyprint" data-lang="python">
-# ...
->>> clusterer.cluster_centers_.save("./cluster_centers.pdb")
-</pre>
-
-<center>
-<img height=400 src="figures/ala_cluster_centers.png">
-</center>
+<footer class="source">
+<a href="http://msmbuilder.org/3.5.0/decomposition.html">
+http://msmbuilder.org/3.5.0/decomposition.html
+</a>
+</footer>
 
 ---
-title: Cross Validation
+title: Markov State Models
+
+We offer two main flavors of MSM:
+
+* <code>MarkovStateModel</code> - Fits a first-order Markov model to a discrete-time integer labeled timeseries.
+* <code>ContinuousTimeMSM</code> - Estimates a continuous rate matrix from discrete-time integer labeled timeseries.
+
+Each has a Bayesian version, which estimates the error associated with the model.
+
+<footer class="source">
+MarkovStateModel: <a href="http://msmbuilder.org/3.5.0/msm.html">
+http://msmbuilder.org/3.5.0/msm.html
+</a>
+<br>
+ContinuousTimeMSM: <a href="http://msmbuilder.org/3.5.0/ratematrix.html">
+http://msmbuilder.org/3.5.0/ratematrix.html
+</a>
+</footer>
+
+---
+title: Hidden Markov Models
+
+<div style="float: right;">
+<img height=225" src="http://msmbuilder.org/3.5.0/_images/kde-vs-histogram.png"/>
+<figcaption style="font-size: 50%; text-align: center;">KDE is to histogram as HMM is to MSM</figcaption>
+</div>
+
+We also offer two types of HMMs:
+
+* <code>GaussianHMM</code> - Reversible Gaussian Hidden Markov Model L1-Fusion Regularization
+* <code>VonMisesHMM</code> - Hidden Markov Model with von Mises Emissions
+
+HMMs are great for macrostate modeling!
+
+<footer class="source">
+<a href="http://msmbuilder.org/3.5.0/hmm.html">
+http://msmbuilder.org/3.5.0/hmm.html
+</a>
+</footer>
+
+---
+title: Cross-Validation
 
 <pre class="prettyprint" data-lang="python">
 
-from sklearn.cross_validation import KFold
+from sklearn.cross_validation import ShuffleSplit
 
-cv = KFold(len(trajectories), n_folds=5)
+cv = ShuffleSplit(len(trajectories), n_iter=5, test_size=0.5)
 
 for fold, (train_index, test_index) in enumerate(cv):
     train_data = [trajectories[i] for i in train_index]
@@ -304,6 +379,139 @@ for fold, (train_index, test_index) in enumerate(cv):
     model.score(test_data)
 </pre>
 
-Also scikit-learn's <code>GridSearchCV</code> and <code>RandomizedSearchCV</code>.
+Also check out scikit-learn's <code>KFold</code>, <code>GridSearchCV</code> and <code>RandomizedSearchCV</code>.
+
+<footer class="source">
+If you'd like to see how CV can be done with MSMs, see
+<a href="http://msmbuilder.org/3.5.0/gmrq.html">
+http://msmbuilder.org/3.5.0/gmrq.html
+</a>
+</footer>
 
 
+---
+title: Related Projects
+
+We also maintain:
+
+* [<b>Osprey</b>](http://github.com/msmbuilder/osprey)- machine learning hyperparameter optimization
+* [<b>MDEntropy</b>](http://github.com/msmbuilder/mdentropy) - entropy calculations for MD data
+
+---
+title: Osprey
+
+Fully-automated, large-scale hyperparameter optimization
+
+<div style="text-align: center">
+<img height=225 style="padding-bottom: 1em;" src="http://msmbuilder.org/osprey/development/_static/osprey.svg"/>
+<figcaption>http://github.com/msmbuilder/osprey</figcaption>
+</div>
+
+<footer class="source">
+Not just for MSMs!
+</footer>
+
+---
+title: Osprey: Estimator
+
+Define your model
+
+<pre class="prettyprint" data-lang="yaml">
+
+estimator:
+  # The model/estimator to be fit.
+
+  eval_scope: msmbuilder
+  eval: |
+    Pipeline([
+            ('featurizer', DihedralFeaturizer(types=['phi', 'psi'])),
+            ('scaler', RobustScaler()),
+            ('tica', tICA(n_components=2)),
+            ('cluster', MiniBatchKMeans()),
+            ('msm', MarkovStateModel(n_timescales=5, verbose=False)),
+    ])
+
+</pre>
+
+---
+title: Osprey: Search Strategy
+
+Choose how to search over your hyperparameter space
+
+<pre class="prettyprint" data-lang="yaml">
+
+strategy:
+
+    name: gp  # or random, grid, hyperopt_tpe
+    params:
+      seed: 50
+</pre>
+
+---
+title: Osprey: Search Space
+
+Select which hyperparameters to optimize
+
+<pre class="prettyprint" data-lang="yaml">
+
+search_space:
+  featurizer__types:
+    choices:
+      - ['phi', 'psi']
+      - ['phi', 'psi', 'chi1']
+    type: enum
+
+  cluster__n_clusters:
+    min: 2
+    max: 1000
+    type: int
+    warp: log # search over log-space
+</pre>
+
+---
+title: Osprey: Cross-Validation
+
+Pick your favorite cross-validator
+
+<pre class="prettyprint" data-lang="yaml">
+
+cv:
+  name: shufflesplit # Or kfold, loo, stratifiedshufflesplit, stratifiedkfold, fixed
+  params:
+    n_iter: 5
+    test_size: 0.5
+</pre>
+
+---
+title: Osprey: Dataset Loader
+
+Load your data, no matter what file type
+
+<pre class="prettyprint" data-lang="yaml">
+
+dataset_loader:
+  # specification of the dataset on which to train the models.
+  name: mdtraj # Or msmbuilder, numpy, filename, joblib, sklearn_dataset, hdf5
+  params:
+    trajectories: ./fs_peptide/trajectory-*.xtc
+    topology: ./fs_peptide/fs-peptide.pdb
+    stride: 100
+</pre>
+
+---
+title: Osprey: Trials
+
+Save to a single SQL-like database, run on as many clusters as you'd like*
+
+<pre class="prettyprint" data-lang="yaml">
+
+trials:
+  # path to a database in which the results of each hyperparameter fit
+  # are stored any SQL database is supported, but we recommend using
+  # SQLLite, which is simple and stores the results in a file on disk.
+  uri: sqlite:///osprey-trials.db
+</pre>
+
+<footer class="source">
+*you'll still need to copy your data to each cluster, however
+</footer>
