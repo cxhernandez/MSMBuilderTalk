@@ -164,7 +164,7 @@ title: Models <code>transform()</code> data!
 
 >>> trajectories = [np.random.normal(size=(100, 3))]
 
->>> clusterer = msmbuilder.cluster.KMeans(n_clusters=4, n_init=10)
+>>> clusterer = msmbuilder.cluster.KMeans(n_clusters=8, n_init=10)
 >>> clusterer.fit(trajectories)
 >>> Y = clusterer.transform(trajectories)
 
