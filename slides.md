@@ -1,7 +1,7 @@
 
 
 % title: <div style="text-align: center; margin-left: 0em; margin-bottom: -.3em;"> <img height=300 src="http://msmbuilder.org/3.5.0/_static/logo.png"></div>
-% author: Carlos X. Hernández, Matthew P. Harrigan, Muneeb M. Sultan, Brooke E. Husic
+% author: Carlos X. Hernández, Matthew P. Harrigan, M. Muneeb Sultan, Brooke E. Husic
 % author: Updated: Jun. 23, 2016 (msmbuilder v3.5)
 
 
